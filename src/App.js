@@ -21,7 +21,10 @@ import {
   User,
   Clock,
   AlertTriangle,
-  Phone
+  Phone,
+  Lock,
+  Unlock,
+  X
 } from 'lucide-react';
 
 // ==========================================
@@ -42,6 +45,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const appId = 'dirgni-studio-v1'; 
 const SALON_PHONE = "50688274552"; 
+const ADMIN_PIN = "2024"; // <-- CAMBIA TU PIN AQUÍ
 
 export default function App() {
   const [view, setView] = useState('client'); 
@@ -49,6 +53,12 @@ export default function App() {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
+  
+  // Estados para la Seguridad Admin
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pinInput, setPinInput] = useState('');
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [pinError, setPinError] = useState(false);
 
   useEffect(() => {
     const initAuth = async () => {
@@ -71,7 +81,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!user || view !== 'admin') return;
+    if (!user || view !== 'admin' || !isAdminAuthenticated) return;
     const q = collection(db, 'artifacts', appId, 'public', 'data', 'appointments');
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -79,39 +89,68 @@ export default function App() {
       setLoading(false);
     }, () => setLoading(false));
     return () => unsubscribe();
-  }, [user, view]);
+  }, [user, view, isAdminAuthenticated]);
+
+  const handleAdminAccess = () => {
+    if (isAdminAuthenticated) {
+      setView('admin');
+    } else {
+      setShowPinModal(true);
+    }
+  };
+
+  const verifyPin = (e) => {
+    e.preventDefault();
+    if (pinInput === ADMIN_PIN) {
+      setIsAdminAuthenticated(true);
+      setShowPinModal(false);
+      setView('admin');
+      setPinError(false);
+      setPinInput('');
+    } else {
+      setPinError(true);
+      setPinInput('');
+      setTimeout(() => setPinError(false), 2000);
+    }
+  };
+
+  const closeAdmin = () => {
+    setIsAdminAuthenticated(false);
+    setView('client');
+  };
 
   return (
-    <div className="min-h-screen bg-[#fafafa] text-[#1a1a1a] font-sans">
+    <div className="min-h-screen bg-[#fafafa] text-[#1a1a1a] font-sans selection:bg-amber-100 selection:text-amber-900">
       {authError && (
         <div className="bg-red-600 text-white text-[10px] py-2 px-4 flex items-center justify-center gap-2 font-bold uppercase tracking-widest sticky top-0 z-[100]">
           <AlertTriangle size={12} /> {authError}
         </div>
       )}
 
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
+      {/* Header Estilo Boutique */}
+      <header className="bg-white/80 backdrop-blur-xl border-b border-gray-100 sticky top-0 z-50">
         <div className="max-w-xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-black text-amber-500 p-2 rounded-xl shadow-lg shadow-amber-500/10 rotate-3 transition-transform hover:rotate-0">
+            <div className="bg-black text-amber-500 p-2 rounded-xl shadow-lg shadow-amber-500/10 rotate-3 transition-transform">
               <Crown size={24} strokeWidth={2.5} />
             </div>
             <div>
               <h1 className="font-black text-2xl leading-none tracking-tighter uppercase italic">
                 Dirgni <span className="text-amber-600 font-light not-italic">Studio</span>
               </h1>
-              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.3em]">Exclusividad & Estilo</span>
+              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.3em]">Boutique Experience</span>
             </div>
           </div>
           
-          <div className="flex bg-gray-100 p-1 rounded-2xl border border-gray-200 shadow-inner scale-90">
+          <div className="flex bg-gray-100 p-1.5 rounded-2xl border border-gray-200 shadow-inner scale-90">
             <button 
               onClick={() => setView('client')} 
-              className={`px-5 py-2 rounded-xl text-[10px] font-black transition-all duration-300 ${view === 'client' ? 'bg-black text-amber-500 shadow-md scale-105' : 'text-gray-400 hover:text-gray-600'}`}
+              className={`px-5 py-2 rounded-xl text-[10px] font-black transition-all duration-300 ${view === 'client' ? 'bg-white text-black shadow-md scale-105' : 'text-gray-400 hover:text-gray-600'}`}
             >
               CITA
             </button>
             <button 
-              onClick={() => setView('admin')} 
+              onClick={handleAdminAccess} 
               className={`px-5 py-2 rounded-xl text-[10px] font-black transition-all duration-300 ${view === 'admin' ? 'bg-black text-amber-500 shadow-lg scale-105' : 'text-gray-400 hover:text-gray-600'}`}
             >
               ADMIN
@@ -121,8 +160,43 @@ export default function App() {
       </header>
 
       <main className="max-w-xl mx-auto px-6 py-8 pb-32">
-        {view === 'client' ? <ClientView authError={authError} /> : <AdminView appointments={appointments} loading={loading} authError={authError} />}
+        {view === 'client' ? <ClientView authError={authError} /> : <AdminView appointments={appointments} loading={loading} authError={authError} onLogout={closeAdmin} />}
       </main>
+
+      {/* MODAL DE SEGURIDAD LUX */}
+      {showPinModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/40 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-xs rounded-[3rem] p-8 shadow-2xl border border-gray-100 animate-in zoom-in-95 duration-300">
+            <div className="flex justify-between items-start mb-6">
+               <div className="bg-amber-50 p-3 rounded-2xl text-amber-600">
+                  <Lock size={24} />
+               </div>
+               <button onClick={() => setShowPinModal(false)} className="text-gray-300 hover:text-gray-600"><X size={20}/></button>
+            </div>
+            
+            <h2 className="text-xl font-black uppercase tracking-tighter mb-2">Acceso Privado</h2>
+            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-6">Introduce el PIN de seguridad</p>
+            
+            <form onSubmit={verifyPin} className="space-y-4">
+              <input 
+                autoFocus
+                type="password"
+                maxLength={4}
+                value={pinInput}
+                onChange={(e) => setPinInput(e.target.value)}
+                placeholder="****"
+                className={`w-full text-center text-3xl tracking-[0.5em] py-4 rounded-2xl bg-gray-50 border-2 outline-none transition-all ${pinError ? 'border-red-500 animate-shake' : 'border-transparent focus:border-amber-500 focus:bg-white'}`}
+              />
+              {pinError && <p className="text-red-500 text-[9px] font-black uppercase text-center animate-pulse">PIN INCORRECTO</p>}
+              <button type="submit" className="w-full bg-black text-amber-500 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:bg-gray-800 transition-all">VERIFICAR</button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <footer className="max-w-xl mx-auto text-center pb-12 opacity-30">
+        <p className="text-[10px] font-bold uppercase tracking-[0.4em]">Dirgni Studio Secure Portal</p>
+      </footer>
     </div>
   );
 }
@@ -134,166 +208,86 @@ function ClientView({ authError }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (authError) return;
-
     try {
-      await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'appointments'), { 
-        ...formData, 
-        status: 'pendiente', 
-        createdAt: serverTimestamp() 
-      });
+      await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'appointments'), { ...formData, status: 'pendiente', createdAt: serverTimestamp() });
       const serviceLabel = formData.service.toUpperCase();
-      const msg = `👑 ¡Hola Dirgni Studio!\nSoy *${formData.name} ${formData.lastName}*.\nSolicito cita para: *${serviceLabel}*.\n\nHorarios:\n1️⃣ ${new Date(formData.slot1).toLocaleString()}\n2️⃣ ${new Date(formData.slot2).toLocaleString()}\n3️⃣ ${new Date(formData.slot3).toLocaleString()}`;
+      const msg = `👑 ¡Hola Dirgni Studio!\nSoy *${formData.name} ${formData.lastName}*.\nSolicito cita para: *${serviceLabel}*.\n\nOpciones:\n1️⃣ ${new Date(formData.slot1).toLocaleString()}\n2️⃣ ${new Date(formData.slot2).toLocaleString()}\n3️⃣ ${new Date(formData.slot3).toLocaleString()}`;
       setIsSent(true);
       window.open(`https://wa.me/${SALON_PHONE}?text=${encodeURIComponent(msg)}`, '_blank');
     } catch (err) { console.error(err); }
   };
 
-  if (isSent) {
-    return (
-      <div className="text-center py-20 px-4 space-y-6">
-        <div className="w-24 h-24 bg-amber-50 rounded-full flex items-center justify-center mx-auto ring-8 ring-amber-50/50">
-          <CheckCircle className="w-12 h-12 text-amber-600 animate-bounce" />
-        </div>
-        <div>
-          <h2 className="text-3xl font-black uppercase tracking-tighter">¡Solicitud Lista!</h2>
-          <p className="text-gray-500 text-sm mt-3 leading-relaxed">Hemos abierto WhatsApp para que nos envíes tu mensaje. Te responderemos en breve para confirmar.</p>
-        </div>
-        <button onClick={() => setIsSent(false)} className="px-8 py-3 rounded-full border-2 border-amber-500 text-amber-600 font-black text-[10px] uppercase tracking-widest hover:bg-amber-50 transition-all">Pedir otra cita</button>
-      </div>
-    );
-  }
+  if (isSent) return (
+    <div className="text-center py-20 px-6 space-y-6">
+      <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto border border-amber-100"><CheckCircle className="w-10 h-10 text-amber-600" /></div>
+      <h2 className="text-2xl font-black uppercase tracking-tighter italic">¡Solicitud Enviada!</h2>
+      <p className="text-gray-400 text-sm">Se ha abierto WhatsApp. Te confirmaremos tu espacio pronto.</p>
+      <button onClick={() => setIsSent(false)} className="text-[10px] font-black uppercase underline text-gray-400">Agendar otra</button>
+    </div>
+  );
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-10">
-      <div className="space-y-4">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="h-[2px] w-12 bg-amber-500"></div>
-          <span className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400">Tus Datos</span>
-        </div>
-        
-        <div className="grid gap-4">
-          <div className="relative group">
-            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-amber-600 transition-colors" size={18} />
-            <input required placeholder="Nombre" className="w-full pl-12 pr-4 py-5 rounded-[1.5rem] bg-white border border-gray-100 shadow-sm focus:ring-2 focus:ring-amber-500/20 outline-none transition-all placeholder:text-gray-300 font-medium" onChange={e => setFormData({...formData, name: e.target.value})} />
-          </div>
-          <input required placeholder="Apellidos" className="w-full px-6 py-5 rounded-[1.5rem] bg-white border border-gray-100 shadow-sm focus:ring-2 focus:ring-amber-500/20 outline-none transition-all placeholder:text-gray-300 font-medium" onChange={e => setFormData({...formData, lastName: e.target.value})} />
-          <div className="relative group">
-            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-amber-600 transition-colors" size={18} />
-            <input required type="tel" placeholder="WhatsApp" className="w-full pl-12 pr-4 py-5 rounded-[1.5rem] bg-white border border-gray-100 shadow-sm focus:ring-2 focus:ring-amber-500/20 outline-none transition-all placeholder:text-gray-300 font-medium" onChange={e => setFormData({...formData, phone: e.target.value})} />
-          </div>
-        </div>
+    <form onSubmit={handleSubmit} className="space-y-8 animate-in fade-in duration-700">
+      <div className="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-gray-200/40 border border-gray-50 space-y-4">
+        <div className="flex items-center gap-2 mb-2"><User size={14} className="text-amber-600"/><span className="text-[10px] font-black uppercase tracking-widest text-gray-300">Tus Datos</span></div>
+        <input required placeholder="Nombre" className="w-full p-5 rounded-2xl bg-gray-50 border-0 outline-none focus:ring-2 focus:ring-amber-500/20 transition-all font-medium" onChange={e => setFormData({...formData, name: e.target.value})} />
+        <input required placeholder="Apellidos" className="w-full p-5 rounded-2xl bg-gray-50 border-0 outline-none focus:ring-2 focus:ring-amber-500/20 transition-all font-medium" onChange={e => setFormData({...formData, lastName: e.target.value})} />
+        <input required type="tel" placeholder="WhatsApp" className="w-full p-5 rounded-2xl bg-gray-50 border-0 outline-none focus:ring-2 focus:ring-amber-500/20 transition-all font-medium" onChange={e => setFormData({...formData, phone: e.target.value})} />
       </div>
 
-      <div className="space-y-4">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="h-[2px] w-12 bg-amber-500"></div>
-          <span className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400">Servicio</span>
-        </div>
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { id: 'cabello', icon: <Scissors size={20}/>, label: 'Cabello' },
-            { id: 'maquillaje', icon: <Sparkles size={20}/>, label: 'Maquillaje' },
-            { id: 'fotografia', icon: <Camera size={20}/>, label: 'Fotografía' }
-          ].map(s => (
-            <button key={s.id} type="button" onClick={() => setFormData({...formData, service: s.id})} 
-              className={`p-6 rounded-[2rem] border-2 flex flex-col items-center gap-3 transition-all duration-300 ${formData.service === s.id ? 'border-amber-500 bg-white shadow-xl shadow-amber-500/10 scale-105 text-black' : 'bg-gray-50 border-transparent text-gray-400 grayscale opacity-70 hover:opacity-100 hover:grayscale-0'}`}>
-              {s.icon}
-              <span className="text-[9px] font-black uppercase tracking-tighter">{s.label}</span>
-            </button>
-          ))}
-        </div>
+      <div className="grid grid-cols-3 gap-2">
+        {[{id:'cabello', label:'Cabello', icon:<Scissors size={18}/>}, {id:'maquillaje', label:'Makeup', icon:<Sparkles size={18}/>}, {id:'fotografia', label:'Foto', icon:<Camera size={18}/>}].map(s => (
+          <button key={s.id} type="button" onClick={() => setFormData({...formData, service: s.id})} className={`p-6 rounded-[2rem] border-2 flex flex-col items-center gap-3 transition-all ${formData.service === s.id ? 'border-amber-500 bg-white shadow-lg text-black scale-105' : 'bg-gray-50 border-transparent text-gray-300 grayscale opacity-60'}`}>
+            {s.icon} <span className="text-[9px] font-black uppercase tracking-tighter">{s.label}</span>
+          </button>
+        ))}
       </div>
 
-      <div className="bg-slate-900 p-8 rounded-[3rem] shadow-2xl relative overflow-hidden group">
-        <div className="relative z-10 space-y-4">
-          <div className="flex items-center gap-2 mb-2 px-2">
-            <Clock className="text-amber-500" size={18} />
-            <span className="text-[11px] font-black text-amber-500 uppercase tracking-[0.2em]">Selecciona 3 horarios</span>
-          </div>
-          {[1, 2, 3].map(n => (
-            <div key={n} className="relative">
-              <input required type="datetime-local" 
-                className="w-full pl-4 pr-4 py-4 rounded-2xl border-0 bg-white/10 text-white font-bold focus:ring-2 focus:ring-amber-500 outline-none transition-all" 
-                onChange={e => setFormData({...formData, [`slot${n}`]: e.target.value})} />
-            </div>
-          ))}
-        </div>
+      <div className="bg-gray-900 p-8 rounded-[3rem] shadow-2xl relative overflow-hidden group">
+        <div className="flex items-center gap-2 mb-4 px-2 text-amber-500"><Clock size={18} /><span className="text-[11px] font-black uppercase tracking-[0.2em]">Elige 3 opciones</span></div>
+        {[1, 2, 3].map(n => <input key={n} required type="datetime-local" className="w-full p-4 mb-3 rounded-2xl border-0 bg-white/10 text-white font-bold outline-none focus:bg-white/20 transition-all" onChange={e => setFormData({...formData, [`slot${n}`]: e.target.value})} />)}
       </div>
 
-      <button type="submit" className="w-full bg-black text-amber-500 py-6 rounded-[2.5rem] font-black text-lg flex items-center justify-center gap-4 shadow-2xl hover:bg-gray-900 active:scale-[0.98] transition-all group">
-        <MessageCircle className="group-hover:rotate-12 transition-transform" />
-        SOLICITAR CITA
-      </button>
+      <button type="submit" className="w-full bg-black text-amber-500 py-6 rounded-[2.5rem] font-black text-xl shadow-2xl hover:bg-gray-900 active:scale-95 transition-all flex items-center justify-center gap-4"><MessageCircle /> AGENDAR CITA</button>
     </form>
   );
 }
 
-function AdminView({ appointments, loading, authError }) {
+function AdminView({ appointments, loading, authError, onLogout }) {
   const confirmDate = async (item, slotKey) => {
     const selectedDate = item[slotKey];
     try {
-      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'appointments', item.id), { 
-        status: 'confirmado', confirmedDate: selectedDate 
-      });
-      const readable = new Date(selectedDate).toLocaleString();
-      const msg = `👑 ¡Hola *${item.name}*! Tu cita en *Dirgni Studio* ha sido CONFIRMADA para el: *${readable}*. ✨`;
+      await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'appointments', item.id), { status: 'confirmado', confirmedDate: selectedDate });
+      const readable = new Date(selectedDate).toLocaleString('es-CR', { weekday: 'long', day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit' });
+      const msg = `👑 ¡Hola *${item.name}*!\n\nTu cita en *Dirgni Studio* ha sido CONFIRMADA.\n📅 Fecha: *${readable}*\n\n¡Te esperamos! ✨`;
       window.open(`https://wa.me/${item.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
     } catch (err) { console.error(err); }
   };
 
-  if (authError) return (
-    <div className="text-center py-20 p-8 bg-red-50 rounded-[3rem] border border-red-100">
-      <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-      <h2 className="font-black text-red-700 uppercase mb-4 text-sm tracking-widest">Configuración Requerida</h2>
-      <div className="text-slate-500 text-[10px] leading-relaxed text-left max-w-xs mx-auto">
-        Para que el sistema funcione, debes:<br/>
-        1. Ir a tu **Consola Firebase**.<br/>
-        2. **Authentication** {' > '} **Sign-in method**.<br/>
-        3. **Add new provider** {' > '} **Anonymous** {' > '} **Enable**.<br/>
-        4. Guardar cambios y recargar esta página.
-      </div>
-    </div>
-  );
-
-  if (loading) return (
-    <div className="py-20 flex flex-col items-center gap-4 animate-pulse">
-      <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
-      <span className="font-black text-[10px] text-gray-400 uppercase tracking-widest italic">Abriendo Agenda...</span>
-    </div>
-  );
+  if (loading) return <div className="py-20 flex flex-col items-center gap-4"><div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div><span className="font-black text-[10px] text-gray-400 uppercase tracking-widest italic">Accediendo a la Bóveda...</span></div>;
 
   const pending = appointments.filter(a => a.status === 'pendiente');
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex items-center justify-between px-2">
-        <h2 className="font-black text-xl tracking-tighter uppercase italic">Solicitudes</h2>
-        <span className="bg-amber-100 text-amber-700 text-[10px] px-4 py-1.5 rounded-full font-black shadow-sm ring-1 ring-amber-200">{pending.length} NUEVAS</span>
+        <div><h2 className="font-black text-xl tracking-tighter uppercase italic leading-none">Citas</h2><p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Nuevas Solicitudes</p></div>
+        <button onClick={onLogout} className="bg-gray-100 text-gray-400 p-2.5 rounded-xl hover:bg-red-50 hover:text-red-600 transition-all"><Unlock size={18}/></button>
       </div>
 
       {pending.length === 0 ? (
-        <div className="bg-white border-2 border-dashed border-gray-100 rounded-[3rem] py-24 text-center">
-          <p className="text-gray-300 font-black uppercase text-[10px] tracking-widest italic">Todo al día</p>
-        </div>
+        <div className="bg-white border-2 border-dashed border-gray-100 rounded-[3rem] py-24 text-center"><p className="text-gray-300 font-black uppercase text-[10px] tracking-widest italic">Sin pendientes</p></div>
       ) : (
         pending.map(app => (
-          <div key={app.id} className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-xl shadow-gray-200/20 space-y-6">
+          <div key={app.id} className="bg-white border border-gray-50 rounded-[2.5rem] p-8 shadow-xl shadow-gray-200/20 space-y-6">
             <div className="flex justify-between items-start">
-              <div>
-                <h3 className="font-black text-2xl tracking-tighter uppercase leading-none">{app.name} <span className="text-amber-600">{app.lastName}</span></h3>
-                <p className="text-[10px] font-bold text-gray-400 mt-2 uppercase tracking-widest">{app.phone}</p>
-              </div>
-              <div className="bg-black text-amber-500 text-[9px] px-4 py-2 rounded-xl font-black uppercase tracking-wider">{app.service}</div>
+              <div><h3 className="font-black text-2xl tracking-tighter uppercase leading-none">{app.name} <span className="text-amber-600">{app.lastName}</span></h3><p className="text-[10px] font-bold text-gray-400 mt-2 uppercase tracking-widest">{app.phone}</p></div>
+              <span className="bg-black text-amber-500 text-[9px] px-4 py-2 rounded-xl font-black uppercase italic tracking-wider">{app.service}</span>
             </div>
-            
             <div className="space-y-3">
               {['slot1', 'slot2', 'slot3'].map((k, idx) => (
-                <button key={k} onClick={() => confirmDate(app, k)} 
-                  className="w-full flex justify-between items-center p-5 bg-gray-50 rounded-2xl text-[11px] font-black hover:bg-black hover:text-amber-500 transition-all group">
-                  <span className="flex items-center gap-4">
-                    <span className="w-6 h-6 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center text-[9px] font-black group-hover:bg-amber-500 group-hover:text-black transition-colors">{idx + 1}</span>
-                    {app[k] ? new Date(app[k]).toLocaleString('es-CR', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '---'}
-                  </span>
+                <button key={k} onClick={() => confirmDate(app, k)} className="w-full flex justify-between items-center p-5 bg-gray-50 rounded-2xl text-[11px] font-black hover:bg-black hover:text-amber-500 transition-all border border-transparent hover:border-amber-500 group">
+                  <span className="flex items-center gap-4"><span className="w-6 h-6 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center text-[9px] font-black group-hover:bg-amber-500 group-hover:text-black transition-colors">{idx + 1}</span>{app[k] ? new Date(app[k]).toLocaleString('es-CR', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '---'}</span>
                   <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
                 </button>
               ))}
