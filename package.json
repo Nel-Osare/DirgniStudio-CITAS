@@ -1,37 +1,29 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#000000" />
-    <title>Dirgni Studio | Citas</title>
-
-    <!-- Fuente Premium Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
-
-    <!-- Motor de Diseño Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <style>
-        * { 
-            font-family: 'Inter', sans-serif; 
-            -webkit-tap-highlight-color: transparent;
-        }
-        body, html, #root { 
-            height: 100%; 
-            margin: 0; 
-            padding: 0; 
-            background-color: #fafafa; 
-        }
-        body {
-            overflow-x: hidden;
-        }
-    </style>
-</head>
-<body>
-    <noscript>Necesitas habilitar JavaScript para usar el sistema.</noscript>
-    <div id="root"></div>
-</body>
-</html>
+{
+  "name": "dirgni-studio-engine",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "firebase": "^11.0.0",
+    "lucide-react": "^0.284.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
