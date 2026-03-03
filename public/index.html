@@ -3,21 +3,23 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Dirgni Studio | Citas</title>
+    <meta name="theme-color" content="#000000" />
+    <title>Dirgni Studio | Boutique Booking</title>
 
-    <!-- Fuente Premium -->
+    <!-- Google Fonts: Inter (Fuente Premium) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
 
-    <!-- MOTOR DE DISEÑO (Carga Forzada) -->
+    <!-- MOTOR DE DISEÑO: Tailwind CSS (Carga Directa) -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
         * { 
             font-family: 'Inter', sans-serif; 
             -webkit-tap-highlight-color: transparent;
-            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
         body, html, #root { 
             height: 100%; 
@@ -25,14 +27,18 @@
             padding: 0; 
             background-color: #fafafa; 
         }
-        body { overflow-x: hidden; }
-        
-        /* Estilos de emergencia si Tailwind falla en cargar */
-        .fallback-bg { background-color: #000 !important; color: #f59e0b !important; }
+        /* Bloqueo de desplazamiento lateral para una experiencia móvil fluida */
+        body {
+            overflow-x: hidden;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
     <noscript>Necesitas habilitar JavaScript para usar el sistema de Dirgni Studio.</noscript>
+    
+    <!-- Punto de anclaje de la aplicación React -->
     <div id="root"></div>
+
 </body>
 </html>
