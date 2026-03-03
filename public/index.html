@@ -1,25 +1,48 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#000000" />
-    <title>Dirgni Studio | Citas</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="description" content="Dirgni Studio | Gestión de Citas Boutique" />
 
-    <!-- Fuente Premium -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+  <!-- Título de la pestaña en el navegador -->
+  <title>Dirgni Studio | Citas</title>
 
-    <!-- Motor de Diseño (CORREGIDO) -->
-    <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tipografía Premium: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
 
-    <style>
-        * { font-family: 'Inter', sans-serif; }
-        body, html, #root { height: 100%; margin: 0; padding: 0; background-color: #fafafa; }
-    </style>
+  <!-- Motor de Estilos Tailwind CSS (Necesario para el diseño Lux) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    /* Optimizaciones visuales globales */
+    * {
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body, html, #root {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: #fafafa;
+    }
+
+    /* Evitar el desplazamiento horizontal en dispositivos móviles */
+    body {
+      overflow-x: hidden;
+    }
+  </style>
 </head>
 <body>
-    <div id="root"></div>
+  <noscript>Es necesario habilitar JavaScript para utilizar el sistema de citas de Dirgni Studio.</noscript>
+
+  <!-- PUNTO DE ANCLAJE: Aquí es donde React "dibuja" toda la aplicación -->
+  <div id="root"></div>
+
 </body>
 </html>
