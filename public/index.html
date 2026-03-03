@@ -1,27 +1,48 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="Dirgni Studio | Gestión de Citas Boutique" />
+    
+    <!-- Título de la pestaña -->
+    <title>Dirgni Studio | Citas</title>
 
-/**
- * ARCHIVO DE ENTRADA (INDEX.JS)
- * Este archivo es el punto de partida de la aplicación.
- * Se encarga de inyectar todo el diseño de App.js en el contenedor 'root' 
- * que definimos en public/index.html.
- */
+    <!-- Google Fonts: Inter para un look moderno y limpio -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
 
-// Localizamos el contenedor principal en el HTML
-const rootElement = document.getElementById('root');
+    <!-- Motor de Estilos Tailwind CSS: Esencial para los colores dorados y negros -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-// Verificamos que el contenedor exista para evitar errores de pantalla en blanco
-if (rootElement) {
-  const root = ReactDOM.createRoot(rootElement);
-  
-  root.render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>
-  );
-} else {
-  // Si no se encuentra el 'root', enviamos un aviso a la consola para depuración
-  console.error("Error crítico: No se encontró el elemento con id 'root'. Verifica tu archivo public/index.html.");
-}
+    <style>
+        /* Optimizaciones de fuente y fondo */
+        * {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body, html, #root {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: #fafafa;
+        }
+
+        /* Prevenimos el scroll horizontal */
+        body {
+            overflow-x: hidden;
+        }
+    </style>
+</head>
+<body>
+    <noscript>Es necesario habilitar JavaScript para utilizar el sistema de citas de Dirgni Studio.</noscript>
+    
+    <!-- PUNTO DE ANCLAJE: Aquí es donde React inyecta todo el código de App.js -->
+    <div id="root"></div>
+
+</body>
+</html>
