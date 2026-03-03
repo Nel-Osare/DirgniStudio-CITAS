@@ -45,7 +45,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const appId = 'dirgni-studio-v1'; 
 const SALON_PHONE = "50688274552"; 
-const ADMIN_PIN = "2024"; // <-- CAMBIA TU PIN AQUÍ
+const ADMIN_PIN = "2024"; // PIN de acceso
 
 export default function App() {
   const [view, setView] = useState('client'); 
@@ -54,7 +54,6 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
   
-  // Estados para la Seguridad Admin
   const [showPinModal, setShowPinModal] = useState(false);
   const [pinInput, setPinInput] = useState('');
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
@@ -67,8 +66,6 @@ export default function App() {
       } catch (error) {
         if (error.code === 'auth/configuration-not-found') {
           setAuthError("Configuración pendiente en Firebase.");
-        } else {
-          setAuthError(error.message);
         }
       }
     };
@@ -114,20 +111,14 @@ export default function App() {
     }
   };
 
-  const closeAdmin = () => {
-    setIsAdminAuthenticated(false);
-    setView('client');
-  };
-
   return (
-    <div className="min-h-screen bg-[#fafafa] text-[#1a1a1a] font-sans selection:bg-amber-100 selection:text-amber-900">
+    <div className="min-h-screen bg-[#fafafa] text-[#1a1a1a] font-sans selection:bg-amber-100">
       {authError && (
         <div className="bg-red-600 text-white text-[10px] py-2 px-4 flex items-center justify-center gap-2 font-bold uppercase tracking-widest sticky top-0 z-[100]">
           <AlertTriangle size={12} /> {authError}
         </div>
       )}
 
-      {/* Header Estilo Boutique */}
       <header className="bg-white/80 backdrop-blur-xl border-b border-gray-100 sticky top-0 z-50">
         <div className="max-w-xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -160,10 +151,9 @@ export default function App() {
       </header>
 
       <main className="max-w-xl mx-auto px-6 py-8 pb-32">
-        {view === 'client' ? <ClientView authError={authError} /> : <AdminView appointments={appointments} loading={loading} authError={authError} onLogout={closeAdmin} />}
+        {view === 'client' ? <ClientView authError={authError} /> : <AdminView appointments={appointments} loading={loading} authError={authError} onLogout={() => {setIsAdminAuthenticated(false); setView('client');}} />}
       </main>
 
-      {/* MODAL DE SEGURIDAD LUX */}
       {showPinModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/40 backdrop-blur-md animate-in fade-in duration-300">
           <div className="bg-white w-full max-w-xs rounded-[3rem] p-8 shadow-2xl border border-gray-100 animate-in zoom-in-95 duration-300">
@@ -187,16 +177,11 @@ export default function App() {
                 placeholder="****"
                 className={`w-full text-center text-3xl tracking-[0.5em] py-4 rounded-2xl bg-gray-50 border-2 outline-none transition-all ${pinError ? 'border-red-500 animate-shake' : 'border-transparent focus:border-amber-500 focus:bg-white'}`}
               />
-              {pinError && <p className="text-red-500 text-[9px] font-black uppercase text-center animate-pulse">PIN INCORRECTO</p>}
               <button type="submit" className="w-full bg-black text-amber-500 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:bg-gray-800 transition-all">VERIFICAR</button>
             </form>
           </div>
         </div>
       )}
-
-      <footer className="max-w-xl mx-auto text-center pb-12 opacity-30">
-        <p className="text-[10px] font-bold uppercase tracking-[0.4em]">Dirgni Studio Secure Portal</p>
-      </footer>
     </div>
   );
 }
@@ -207,21 +192,34 @@ function ClientView({ authError }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (authError) return;
+
+    // 1. Preparamos el mensaje primero para que WhatsApp abra SIEMPRE
+    const serviceLabel = formData.service.toUpperCase();
+    const fDate = (d) => d ? new Date(d).toLocaleString('es-CR', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : '---';
+    
+    const msg = `👑 ¡Hola Dirgni Studio!\nSoy *${formData.name} ${formData.lastName}*.\nSolicito cita para: *${serviceLabel}*.\n\nOpciones:\n1️⃣ ${fDate(formData.slot1)}\n2️⃣ ${fDate(formData.slot2)}\n3️⃣ ${fDate(formData.slot3)}`;
+
+    // 2. Intentamos guardar en Firestore sin bloquear el flujo
     try {
-      await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'appointments'), { ...formData, status: 'pendiente', createdAt: serverTimestamp() });
-      const serviceLabel = formData.service.toUpperCase();
-      const msg = `👑 ¡Hola Dirgni Studio!\nSoy *${formData.name} ${formData.lastName}*.\nSolicito cita para: *${serviceLabel}*.\n\nOpciones:\n1️⃣ ${new Date(formData.slot1).toLocaleString()}\n2️⃣ ${new Date(formData.slot2).toLocaleString()}\n3️⃣ ${new Date(formData.slot3).toLocaleString()}`;
-      setIsSent(true);
-      window.open(`https://wa.me/${SALON_PHONE}?text=${encodeURIComponent(msg)}`, '_blank');
-    } catch (err) { console.error(err); }
+      addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'appointments'), { 
+        ...formData, 
+        status: 'pendiente', 
+        createdAt: serverTimestamp() 
+      });
+    } catch (err) {
+      console.warn("Error al guardar en BD, pero enviando WhatsApp...");
+    }
+
+    // 3. Abrimos WhatsApp y mostramos pantalla de éxito
+    setIsSent(true);
+    window.open(`https://wa.me/${SALON_PHONE}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
   if (isSent) return (
     <div className="text-center py-20 px-6 space-y-6">
       <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto border border-amber-100"><CheckCircle className="w-10 h-10 text-amber-600" /></div>
       <h2 className="text-2xl font-black uppercase tracking-tighter italic">¡Solicitud Enviada!</h2>
-      <p className="text-gray-400 text-sm">Se ha abierto WhatsApp. Te confirmaremos tu espacio pronto.</p>
+      <p className="text-gray-400 text-sm">Se ha abierto WhatsApp para que nos envíes el mensaje. Te confirmaremos pronto.</p>
       <button onClick={() => setIsSent(false)} className="text-[10px] font-black uppercase underline text-gray-400">Agendar otra</button>
     </div>
   );
@@ -248,7 +246,7 @@ function ClientView({ authError }) {
         {[1, 2, 3].map(n => <input key={n} required type="datetime-local" className="w-full p-4 mb-3 rounded-2xl border-0 bg-white/10 text-white font-bold outline-none focus:bg-white/20 transition-all" onChange={e => setFormData({...formData, [`slot${n}`]: e.target.value})} />)}
       </div>
 
-      <button type="submit" className="w-full bg-black text-amber-500 py-6 rounded-[2.5rem] font-black text-xl shadow-2xl hover:bg-gray-900 active:scale-95 transition-all flex items-center justify-center gap-4"><MessageCircle /> AGENDAR CITA</button>
+      <button type="submit" className="w-full bg-black text-amber-500 py-6 rounded-[2.5rem] font-black text-xl shadow-2xl hover:bg-gray-900 active:scale-95 transition-all flex items-center justify-center gap-4"><MessageCircle /> SOLICITAR CITA</button>
     </form>
   );
 }
@@ -264,7 +262,21 @@ function AdminView({ appointments, loading, authError, onLogout }) {
     } catch (err) { console.error(err); }
   };
 
-  if (loading) return <div className="py-20 flex flex-col items-center gap-4"><div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div><span className="font-black text-[10px] text-gray-400 uppercase tracking-widest italic">Accediendo a la Bóveda...</span></div>;
+  if (authError) return (
+    <div className="text-center py-20 p-8 bg-red-50 rounded-[3rem] border border-red-100 shadow-inner">
+      <AlertTriangle className="w-14 h-14 text-red-500 mx-auto mb-6" />
+      <h2 className="font-black text-red-700 uppercase mb-4 text-sm tracking-widest leading-relaxed">Configuración Pendiente</h2>
+      <div className="text-slate-500 text-[10px] leading-relaxed text-left max-w-xs mx-auto space-y-2 bg-white/50 p-6 rounded-2xl border border-red-100">
+        <p>Para que el sistema funcione, debes:</p>
+        <p>1. Ir a tu **Consola Firebase**.</p>
+        <p>2. **Authentication** {' > '} **Sign-in method**.</p>
+        <p>3. **Add new provider** {' > '} **Anonymous** {' > '} **Enable**.</p>
+        <p>4. Guardar cambios y recargar esta página.</p>
+      </div>
+    </div>
+  );
+
+  if (loading) return <div className="py-20 flex flex-col items-center gap-4"><div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div><span className="font-black text-[10px] text-gray-400 uppercase tracking-widest italic">Cargando Bóveda...</span></div>;
 
   const pending = appointments.filter(a => a.status === 'pendiente');
 
