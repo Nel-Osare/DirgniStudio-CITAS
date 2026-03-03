@@ -3,19 +3,22 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="Dirgni Studio | Agendamiento de Citas Boutique" />
     <title>Dirgni Studio | Citas</title>
 
-    <!-- Fuente Premium Inter -->
+    <!-- Google Fonts: Noto Sans para una legibilidad premium -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;700;900&display=swap" rel="stylesheet">
 
-    <!-- MOTOR DE DISEÑO (SIN CORCHETES, LIMPIO) -->
+    <!-- Motor de Diseño Tailwind CSS (Carga Directa) -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
+        /* Estilos base para asegurar que el diseño ocupe toda la pantalla */
         * { 
-            font-family: 'Inter', sans-serif; 
+            font-family: 'Noto Sans', sans-serif; 
             -webkit-tap-highlight-color: transparent;
             -webkit-font-smoothing: antialiased;
         }
@@ -25,13 +28,17 @@
             padding: 0; 
             background-color: #fafafa; 
         }
+        /* Prevenimos el scroll horizontal para una experiencia móvil fluida */
         body {
             overflow-x: hidden;
         }
     </style>
 </head>
 <body>
-    <noscript>Necesitas habilitar JavaScript para usar el sistema.</noscript>
+    <noscript>Necesitas habilitar JavaScript para usar el sistema de Dirgni Studio.</noscript>
+    
+    <!-- Punto de Anclaje de la Aplicación: Aquí es donde React dibuja todo -->
     <div id="root"></div>
+
 </body>
 </html>
