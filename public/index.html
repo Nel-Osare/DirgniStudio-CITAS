@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8" />
@@ -11,13 +11,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
 
-    <!-- MOTOR DE DISEÑO: Tailwind CSS (Carga limpia) -->
+    <!-- MOTOR DE DISEÑO: Tailwind CSS (Carga Garantizada) -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
         * { 
             font-family: 'Inter', sans-serif; 
             -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
         }
         body, html, #root { 
             height: 100%; 
@@ -25,9 +26,10 @@
             padding: 0; 
             background-color: #fafafa; 
         }
-        /* Evitamos el desplazamiento lateral en móviles */
+        /* Bloqueo de desplazamiento lateral para móviles */
         body {
             overflow-x: hidden;
+            width: 100%;
         }
     </style>
 </head>
