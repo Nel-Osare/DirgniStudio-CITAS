@@ -18,7 +18,6 @@ import {
   MessageCircle,
   ChevronRight,
   Crown,
-  Calendar,
   User,
   Clock,
   AlertTriangle
