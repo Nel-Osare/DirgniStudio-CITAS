@@ -45,7 +45,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const appId = 'dirgni-studio-v1'; 
 const SALON_PHONE = "50688274552"; 
-const ADMIN_PIN = "2024"; // PIN de acceso
+const ADMIN_PIN = "2024"; 
 
 export default function App() {
   const [view, setView] = useState('client'); 
@@ -66,6 +66,8 @@ export default function App() {
       } catch (error) {
         if (error.code === 'auth/configuration-not-found') {
           setAuthError("Configuración pendiente en Firebase.");
+        } else {
+          setAuthError(error.message);
         }
       }
     };
@@ -84,7 +86,10 @@ export default function App() {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setAppointments(data.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)));
       setLoading(false);
-    }, () => setLoading(false));
+    }, (error) => {
+      console.error("Firestore Error:", error);
+      setLoading(false);
+    });
     return () => unsubscribe();
   }, [user, view, isAdminAuthenticated]);
 
@@ -193,13 +198,11 @@ function ClientView({ authError }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // 1. Preparamos el mensaje primero para que WhatsApp abra SIEMPRE
     const serviceLabel = formData.service.toUpperCase();
     const fDate = (d) => d ? new Date(d).toLocaleString('es-CR', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : '---';
     
     const msg = `👑 ¡Hola Dirgni Studio!\nSoy *${formData.name} ${formData.lastName}*.\nSolicito cita para: *${serviceLabel}*.\n\nOpciones:\n1️⃣ ${fDate(formData.slot1)}\n2️⃣ ${fDate(formData.slot2)}\n3️⃣ ${fDate(formData.slot3)}`;
 
-    // 2. Intentamos guardar en Firestore sin bloquear el flujo
     try {
       addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'appointments'), { 
         ...formData, 
@@ -210,7 +213,6 @@ function ClientView({ authError }) {
       console.warn("Error al guardar en BD, pero enviando WhatsApp...");
     }
 
-    // 3. Abrimos WhatsApp y mostramos pantalla de éxito
     setIsSent(true);
     window.open(`https://wa.me/${SALON_PHONE}?text=${encodeURIComponent(msg)}`, '_blank');
   };
