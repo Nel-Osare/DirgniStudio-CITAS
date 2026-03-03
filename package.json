@@ -1,7 +1,8 @@
 {
-  "name": "dirgni-studio-engine",
+  "name": "dirgni-studio-citas",
   "version": "1.0.0",
   "private": true,
+  "description": "Sistema de agendamiento inteligente para Dirgni Studio",
   "dependencies": {
     "firebase": "^11.0.0",
     "lucide-react": "^0.284.0",
