@@ -63,7 +63,7 @@ export default function App() {
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [pinError, setPinError] = useState(false);
 
-  // Autenticación Anónima (Vital para Firebase)
+  // Autenticación Anónima
   useEffect(() => {
     const initAuth = async () => {
       try {
@@ -221,7 +221,7 @@ function ClientView() {
   };
 
   if (isSent) return (
-    <div className="text-center py-20 px-6 space-y-8">
+    <div className="text-center py-20 px-6 space-y-8 animate-in zoom-in duration-500">
       <div className="w-24 h-24 bg-amber-50 rounded-full flex items-center justify-center mx-auto border border-amber-100 shadow-inner">
         <CheckCircle className="w-12 h-12 text-amber-600" />
       </div>
@@ -237,9 +237,9 @@ function ClientView() {
     <form onSubmit={handleSubmit} className="space-y-12 animate-in fade-in duration-700">
       <div className="bg-white p-10 rounded-[3rem] shadow-2xl shadow-gray-200/50 border border-gray-50 space-y-5">
         <div className="flex items-center gap-2 mb-2"><User size={16} className="text-amber-600"/><span className="text-[11px] font-black uppercase tracking-widest text-gray-300">Tus Datos</span></div>
-        <input required placeholder="Nombre" className="w-full p-5 rounded-2xl bg-gray-50 border-0 outline-none focus:ring-2 focus:ring-amber-500/20 transition-all font-bold" onChange={e => setFormData({...formData, name: e.target.value})} />
-        <input required placeholder="Apellidos" className="w-full p-5 rounded-2xl bg-gray-50 border-0 outline-none focus:ring-2 focus:ring-amber-500/20 transition-all font-bold" onChange={e => setFormData({...formData, lastName: e.target.value})} />
-        <input required type="tel" placeholder="WhatsApp (Celular)" className="w-full p-5 rounded-2xl bg-gray-50 border-0 outline-none focus:ring-2 focus:ring-amber-500/20 transition-all font-bold" onChange={e => setFormData({...formData, phone: e.target.value})} />
+        <input required placeholder="Nombre" className="w-full p-5 rounded-2xl bg-gray-50 border-0 outline-none focus:ring-2 focus:ring-amber-500/20 transition-all font-bold text-black" onChange={e => setFormData({...formData, name: e.target.value})} />
+        <input required placeholder="Apellidos" className="w-full p-5 rounded-2xl bg-gray-50 border-0 outline-none focus:ring-2 focus:ring-amber-500/20 transition-all font-bold text-black" onChange={e => setFormData({...formData, lastName: e.target.value})} />
+        <input required type="tel" placeholder="WhatsApp (Celular)" className="w-full p-5 rounded-2xl bg-gray-50 border-0 outline-none focus:ring-2 focus:ring-amber-500/20 transition-all font-bold text-black" onChange={e => setFormData({...formData, phone: e.target.value})} />
       </div>
 
       <div className="grid grid-cols-3 gap-3">
@@ -248,18 +248,19 @@ function ClientView() {
           {id:'maquillaje', label:'Makeup', icon:<Sparkles size={24}/>}, 
           {id:'fotografia', label:'Foto', icon:<Camera size={24}/>}
         ].map(s => (
-          <button key={s.id} type="button" onClick={() => setFormData({...formData, service: s.id})} className={`p-8 rounded-[2.5rem] border-2 flex flex-col items-center gap-4 transition-all ${formData.service === s.id ? 'border-amber-500 bg-white shadow-2xl text-black scale-105' : 'bg-gray-50 border-transparent text-gray-300 grayscale opacity-60'}`}>
-            {s.icon} <span className="text-[10px] font-black uppercase tracking-tighter text-center">{s.label}</span>
+          <button key={s.id} type="button" onClick={() => setFormData({...formData, service: s.id})} className={`p-8 rounded-[2.5rem] border-2 flex flex-col items-center gap-4 transition-all duration-300 ${formData.service === s.id ? 'border-amber-500 bg-white shadow-2xl text-black scale-105' : 'bg-gray-50 border-transparent text-gray-300 grayscale opacity-60 hover:opacity-100 hover:grayscale-0'}`}>
+            <div className={`${formData.service === s.id ? 'text-amber-600' : 'text-gray-300'}`}>{s.icon}</div>
+            <span className="text-[10px] font-black uppercase tracking-tighter text-center leading-none">{s.label}</span>
           </button>
         ))}
       </div>
 
-      <div className="bg-gray-900 p-10 rounded-[3.5rem] shadow-2xl space-y-5">
+      <div className="bg-gray-900 p-10 rounded-[3.5rem] shadow-2xl shadow-black/20 space-y-5">
         <div className="flex items-center gap-2 mb-2 text-amber-500 font-black text-[12px] uppercase tracking-[0.2em]"><Clock size={18}/> Elige 3 opciones</div>
         {[1, 2, 3].map(n => <input key={n} required type="datetime-local" className="w-full p-5 rounded-2xl border-0 bg-white/10 text-white font-bold outline-none focus:bg-white/20 transition-all appearance-none" onChange={e => setFormData({...formData, [`slot${n}`]: e.target.value})} />)}
       </div>
 
-      <button type="submit" className="w-full bg-black text-amber-500 py-7 rounded-[3rem] font-black text-xl shadow-2xl flex items-center justify-center gap-4 group active:scale-95 transition-all">
+      <button type="submit" className="w-full bg-black text-amber-500 py-7 rounded-[3rem] font-black text-xl shadow-2xl flex items-center justify-center gap-4 group hover:bg-gray-900 active:scale-95 transition-all">
         <MessageCircle className="group-hover:rotate-12 transition-transform" /> SOLICITAR CITA
       </button>
     </form>
@@ -277,40 +278,53 @@ function AdminView({ appointments, loading, onLogout }) {
     } catch (err) { console.error(err); }
   };
 
-  if (loading) return <div className="py-32 flex flex-col items-center justify-center gap-6"><div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div><span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Sincronizando Boutique...</span></div>;
+  if (loading) return (
+    <div className="py-32 flex flex-col items-center justify-center gap-6 animate-pulse">
+      <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+      <span className="font-black text-[10px] text-gray-400 uppercase tracking-[0.4em] italic text-center">Sincronizando Boutique de Citas...</span>
+    </div>
+  );
 
   const pending = appointments.filter(a => a.status === 'pendiente');
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10 animate-in fade-in duration-500">
       <div className="flex items-center justify-between px-2">
         <div>
-          <h2 className="font-black text-2xl tracking-tighter uppercase italic text-black">Citas</h2>
-          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-2">Nuevas Solicitudes ({pending.length})</p>
+          <h2 className="font-black text-3xl tracking-tighter uppercase italic leading-none text-black">Citas</h2>
+          <p className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-2">Nuevas Solicitudes ({pending.length})</p>
         </div>
-        <button onClick={onLogout} className="bg-gray-100 p-3 rounded-2xl text-gray-400 border border-gray-200"><Unlock size={20}/></button>
+        <button onClick={onLogout} className="bg-gray-100 p-3.5 rounded-2xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all border border-gray-200">
+          <Unlock size={22}/>
+        </button>
       </div>
 
       {pending.length === 0 ? (
-        <div className="py-24 text-center text-gray-300 font-black uppercase text-[11px] border-4 border-dashed border-gray-100 rounded-[3rem]">Sin pendientes</div>
+        <div className="bg-white border-4 border-dashed border-gray-100 rounded-[4rem] py-32 text-center">
+          <p className="text-gray-300 font-black uppercase text-[12px] tracking-[0.3em] italic">Studio al día, sin pendientes</p>
+        </div>
       ) : (
         pending.map(app => (
-          <div key={app.id} className="bg-white border border-gray-50 rounded-[3rem] p-10 shadow-2xl shadow-gray-200/30 space-y-8">
+          <div key={app.id} className="bg-white border border-gray-50 rounded-[3.5rem] p-10 shadow-2xl shadow-gray-200/30 space-y-8 animate-in slide-in-from-bottom-6 duration-500">
             <div className="flex justify-between items-start">
               <div>
-                <h3 className="font-black text-3xl tracking-tighter uppercase text-black">{app.name} <span className="text-amber-600 font-light">{app.lastName}</span></h3>
+                <h3 className="font-black text-3xl tracking-tighter uppercase leading-none text-black">{app.name} <span className="text-amber-600 font-light">{app.lastName}</span></h3>
                 <div className="flex items-center gap-2 mt-4 text-gray-400 font-bold text-[11px] uppercase tracking-widest">
-                  <Phone size={12} className="text-amber-500"/> {app.phone}
+                   <Phone size={12} className="text-amber-500"/> {app.phone}
                 </div>
               </div>
-              <span className="bg-black text-amber-500 text-[10px] px-5 py-2.5 rounded-xl font-black uppercase italic shadow-lg">{app.service}</span>
+              <span className="bg-black text-amber-500 text-[10px] px-5 py-2.5 rounded-2xl font-black uppercase italic tracking-wider shadow-lg shadow-black/10">
+                {app.service}
+              </span>
             </div>
-            <div className="space-y-3 pt-4 border-t border-gray-50">
+            
+            <div className="space-y-4 pt-4 border-t border-gray-50">
+              <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest block ml-2">Confirmar espacio sugerido:</span>
               {['slot1', 'slot2', 'slot3'].map((k, idx) => (
-                <button key={k} onClick={() => confirmDate(app, k)} className="w-full flex justify-between items-center p-6 bg-gray-50 rounded-3xl text-[12px] font-black hover:bg-black hover:text-amber-500 transition-all border border-transparent hover:border-amber-500 group">
+                <button key={k} onClick={() => confirmDate(app, k)} className="w-full flex justify-between items-center p-6 bg-gray-50 rounded-3xl text-[12px] font-black hover:bg-black hover:text-amber-500 transition-all duration-300 border border-transparent hover:border-amber-500 group">
                   <span className="flex items-center gap-5">
-                    <span className="w-8 h-8 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center text-[10px] font-black group-hover:bg-amber-500 transition-colors">{idx + 1}</span>
-                    {app[k] ? new Date(app[k]).toLocaleString('es-CR', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '---'}
+                    <span className="w-8 h-8 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center text-[10px] font-black group-hover:bg-amber-500 group-hover:text-black transition-colors">{idx + 1}</span>
+                    {app[k] ? new Date(app[k]).toLocaleString('es-CR', { weekday:'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '---'}
                   </span>
                   <ChevronRight size={18} className="group-hover:translate-x-2 transition-transform" />
                 </button>
